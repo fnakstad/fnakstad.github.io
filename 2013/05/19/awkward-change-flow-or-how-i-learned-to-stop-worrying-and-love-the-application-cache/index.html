@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Awkward Change Flow or: How I Learned to Stop Worrying and Love the Application Cache</title>
+<meta name="description" content>
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="../../../../favicon.ico">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/screen_v%3D4d04abeaa7.css">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/prism_v%3D4d04abeaa7.css">
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Amaranth" rel="stylesheet" type="text/css">
+<link rel="canonical" href="https://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/">
+<meta name="referrer" content="origin">
+<meta property="og:site_name" content="Frederik Nakstad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Awkward Change Flow or: How I Learned to Stop Worrying and Love the Application Cache">
+<meta property="og:description" content="Snappy title, yes...? Let&#x27;s just move on... The application cache API introduced by HTML5 is a very powerful tool which is particularly useful for web applications whose intended primary use is on mobile devices. Not only can it significantly speed...">
+<meta property="og:url" content="http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/">
+<meta property="article:published_time" content="2013-05-19T18:00:00.000Z">
+<meta property="article:modified_time" content="2015-09-14T12:09:46.946Z">
+<meta property="article:tag" content="Development">
+<meta property="article:tag" content="HTML5">
+<meta property="article:tag" content="Application Cache">
+<meta property="article:tag" content="Grunt.js">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Awkward Change Flow or: How I Learned to Stop Worrying and Love the Application Cache">
+<meta name="twitter:description" content="Snappy title, yes...? Let&#x27;s just move on... The application cache API introduced by HTML5 is a very powerful tool which is particularly useful for web applications whose intended primary use is on mobile devices. Not only can it significantly speed...">
+<meta name="twitter:url" content="http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/">
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "Frederik Nakstad",
+    "author": {
+        "@type": "Person",
+        "name": "Frederik Nakstad",
+        "image": "http://www.frederiknakstad.com/content/images/2016/02/profile_1.jpg",
+        "url": "http://www.frederiknakstad.com/author/frederik",
+        "sameAs": null,
+        "description": null
+    },
+    "headline": "Awkward Change Flow or: How I Learned to Stop Worrying and Love the Application Cache",
+    "url": "http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/",
+    "datePublished": "2013-05-19T18:00:00.000Z",
+    "dateModified": "2015-09-14T12:09:46.946Z",
+    "keywords": "Development, HTML5, Application Cache, Grunt.js",
+    "description": "Snappy title, yes...? Let&#x27;s just move on... The application cache API introduced by HTML5 is a very powerful tool which is particularly useful for web applications whose intended primary use is on mobile devices. Not only can it significantly speed..."
+}
+    </script>
+<meta name="generator" content="Ghost 0.7">
+<link rel="alternate" type="application/rss+xml" title="Frederik Nakstad" href="https://www.frederiknakstad.com/rss/">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-37251205-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body class="post-template tag-development tag-html5 tag-application-cache tag-grunt-js nav-closed">
+<div class="site-wrapper">
+<header class="site-header main-header">
+<h1>
+<a class="blog-logo" href="http://www.frederiknakstad.com"><img src="../../../../content/images/2016/02/logo3-1.png" alt="Frederik Nakstad"></a>
+<ruby>Frederik Nakstad<rt>フレデリック・ナクスター</rt></ruby>
+</h1>
+<hr>
+<nav class="menu">
+<ul class="nav">
+<li class="nav-blog">
+<a href="http://www.frederiknakstad.com/">
+<span data-hover="Blog">Blog</span>
+</a>
+</li>
+<li class="nav-about">
+<a href="http://www.frederiknakstad.com/about">
+<span data-hover="About">About</span>
+</a>
+</li>
+</ul>
+</nav>
+</header>
+<main class="content" role="main">
+<article class="post tag-development tag-html5 tag-application-cache tag-grunt-js">
+<header class="post-header">
+<h1 class="post-title">Awkward Change Flow or: How I Learned to Stop Worrying and Love the Application Cache</h1>
+<section class="post-meta">
+<time class="post-date" datetime="2013-05-19">19 May 2013</time> on <a href="../../../../tag/development/">Development</a>, <a href="../../../../tag/html5/">HTML5</a>, <a href="../../../../tag/application-cache/">Application Cache</a>, <a href="../../../../tag/grunt-js/">Grunt.js</a>
+</section>
+</header>
+<section class="post-content">
+<p>Snappy title, yes...? Let's just move on...</p>
+<p>The application cache API introduced by HTML5 is a very powerful tool which is particularly useful for web applications whose intended primary use is on mobile devices. Not only can it significantly speed up the load time of your app, but if implemented correctly you can make your application work quite well even when the user is not connected to the Internet. I'm not going to write too much about how the application cache works as it has already been covered very well elsewhere. If that's what you're looking for I'd recommend the following articles:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/HTML/Using_the_application_cache">Mozilla Developer Network - Using the application cache</a></li>
+<li><a href="https://www.html5rocks.com/en/tutorials/appcache/beginner">HTML5 Rocks - A Beginner's Guide to Using the Application Cache</a></li>
+<li><a href="http://diveintohtml5.info/offline.html">Dive Into HTML5 - Let's Take This Offline</a></li>
+<li><a href="https://www.w3.org/TR/offline-webapps">W3C's Offical Specification - Offline Web Applications</a></li>
+</ul>
+<p>These articles describe the API really well, and also notes several of the "gotchas" that might trip you up if you're not aware of them. If not taken into serious consideration these gotchas can make further development of your application turn into a painful and frustrating experience. So, I wanted to document a way of easing the pain.</p>
+<h2 id="automaticallyupdatingthecachemanifestfilewhenfileschange">Automatically updating the cache manifest file when files change</h2>
+<p>One of the more annoying quirks of developing with the application cache is that it has no mechanism for detecting updates to already cached resources. It doesn't re-cache any of the files in the manifest till the contents of the manifest itself has changed. The way most people get around this is by adding a comment to the top or bottom of the manifest with a timestamp or revision number. However, constantly updating this comment every time you want the browser to recache your resource will get tedious really quick.</p>
+<p>So, we need a way of automatically updating this comment in the manifest whenever a change has been detected in one of our cached files! To do this I prefer to use <a href="https://gruntjs.com">Grunt</a>, which is a tool used to run automated tasks. It has a bunch of useful plugins, and for our purposes we need the <a href="https://github.com/gunta/grunt-manifest">grunt-manifest</a> and <a href="https://github.com/gruntjs/grunt-contrib-watch">grunt-contrib-watch</a> packages. <strong>grunt-manifest</strong> enables you to define your cache manifest configuration in your Gruntfile as a JSON object and regenerate on demand, while <strong>grunt-contrib-watch</strong> will run any task you specify when any of the files it's watching is updated... You can probably see where this is going...</p>
+<p>To install all the necessary packages, just run the following commands in your project folder (assuming you already have installed npm):</p>
+<pre><code class="language-none">npm install -g grunt-cli  
+npm install grunt  
+npm install grunt-manifest  
+npm install grunt-contrib-watch  
+</code></pre>
+<p>Next, create a <code>Gruntfile.js</code> in your project root, which is where we will define our automated tasks:</p>
+<pre><code class="language-javascript">module.exports = function(grunt) {
+
+    // Load plugins
+    grunt.loadNpmTasks('grunt-manifest');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+
+    // Make a list of paths/files to cache
+    var cache = ['./public/js/*', './public/img/*',
+                 './public/css/*'];
+
+    grunt.initConfig({
+
+        // Define how your manifest file should be constructed
+        manifest: {
+            generate: {
+                options: {
+                    network: ['http://*', 'https://*'],
+                    timestamp: true
+                },
+                src: cache,
+                dest: 'manifest.appcache'
+            }
+        },
+
+        // Now setup the watch task to monitor the same files
+        // that are referenced in the CACHE section of your
+        // manifest, and fire the manifest task whenever
+        // a change is detected
+        watch: {
+            scripts: {
+                files: cache,
+                tasks: ['manifest']
+            }
+        }
+    });
+
+};
+</code></pre>
+<p>Here we define two tasks, <code>manifest</code> and <code>watch</code>. The <code>manifest</code> task will generate a new manifest file and update the timestamp in the comment at the top of the file. The <code>watch</code> task will monitor the files specified, and is configured to perform the manifest task when a change has been detected. So, now we can have the manifest be automatically generated whenever a file changes by running the command <code>grunt watch</code>. This task can yet again be made part of a separate <code>run-dev</code> task which could also fire up a local node-server, live-reload, automatic LESS compilation, etc. to remove any other tasks you do manually when starting up a development server.</p>
+</section>
+<footer class="post-footer">
+ <figure class="author-image">
+<a class="img" href="../../../../author/frederik/" style="background-image: url(../../../../content/images/2016/02/profile_1.jpg)"><span class="hidden">Frederik Nakstad's Picture</span></a>
+</figure>
+<section class="author">
+<h4><a href="../../../../author/frederik/">Frederik Nakstad</a></h4>
+<p>Read <a href="../../../../author/frederik/">more posts</a> by this author.</p>
+<div class="author-meta">
+<span class="author-location icon-location">Tokyo, Japan</span>
+</div>
+</section>
+<section class="share">
+<h4>Share this post</h4>
+<a class="icon-twitter" href="https://twitter.com/intent/tweet?text=Awkward%20Change%20Flow%20or%3A%20How%20I%20Learned%20to%20Stop%20Worrying%20and%20Love%20the%20Application%20Cache&amp;url=http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class="hidden">Twitter</span>
+</a>
+<a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class="hidden">Facebook</span>
+</a>
+<a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class="hidden">Google+</span>
+</a>
+</section>
+<section class="disqus_comments">
+<div id="disqus_thread"></div>
+</section>
+<script>
+            /**
+            * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+            */
+            var disqus_config = function () {
+            this.page.url = 'http://www.frederiknakstad.com/2013/05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/'; // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = "15"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+
+            s.src = '//amodestproposal.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+            </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</footer>
+</article>
+</main>
+<aside class="read-next">
+<a class="read-next-story no-cover" href="../../23/application-cache-update-process-state-diagram/">
+<section class="post">
+<h2>Application Cache Update Process State Diagram</h2>
+<p>Here's a quick little follow-up to my last post about the Application Cache. How the browser checks and fetches&hellip;</p>
+</section>
+</a>
+<a class="read-next-story prev no-cover" href="../../../04/12/seeding-mongodb-through-your-mongoose-models/">
+<section class="post">
+<h2>Seeding mongodb through your mongoose models</h2>
+<p>23/4/2013 Update: A change implementing promise support for the create function was just committed to GitHub, and&hellip;</p>
+</section>
+</a>
+</aside>
+<footer class="site-footer clearfix">
+<section class="copyright"><a href="http://www.frederiknakstad.com">Frederik Nakstad</a> &copy; 2021</section>
+</footer>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="../../../../assets/js/jquery.fitvids_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/prism_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/index_v%3D4d04abeaa7.js"></script>
+</body>
+</html>

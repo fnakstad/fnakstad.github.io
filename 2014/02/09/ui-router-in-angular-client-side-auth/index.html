@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>UI-Router in angular-client-side-auth</title>
+<meta name="description" content>
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="../../../../favicon.ico">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/screen_v%3D4d04abeaa7.css">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/prism_v%3D4d04abeaa7.css">
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Amaranth" rel="stylesheet" type="text/css">
+<link rel="canonical" href="https://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/">
+<meta name="referrer" content="origin">
+<meta property="og:site_name" content="Frederik Nakstad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UI-Router in angular-client-side-auth">
+<meta property="og:description" content="I just merged a big change to the angular-client-side-auth repo, switching out the default Angular  routing system, ngRoute, for UI-Router. UI-Router is an excellent project which enables you to organize your application as a finite state machine rather than a...">
+<meta property="og:url" content="http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/">
+<meta property="article:published_time" content="2014-02-09T21:34:00.000Z">
+<meta property="article:modified_time" content="2016-02-10T23:40:02.761Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UI-Router in angular-client-side-auth">
+<meta name="twitter:description" content="I just merged a big change to the angular-client-side-auth repo, switching out the default Angular  routing system, ngRoute, for UI-Router. UI-Router is an excellent project which enables you to organize your application as a finite state machine rather than a...">
+<meta name="twitter:url" content="http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/">
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "Frederik Nakstad",
+    "author": {
+        "@type": "Person",
+        "name": "Frederik Nakstad",
+        "image": "http://www.frederiknakstad.com/content/images/2016/02/profile_1.jpg",
+        "url": "http://www.frederiknakstad.com/author/frederik",
+        "sameAs": null,
+        "description": null
+    },
+    "headline": "UI-Router in angular-client-side-auth",
+    "url": "http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/",
+    "datePublished": "2014-02-09T21:34:00.000Z",
+    "dateModified": "2016-02-10T23:40:02.761Z",
+    "description": "I just merged a big change to the angular-client-side-auth repo, switching out the default Angular  routing system, ngRoute, for UI-Router. UI-Router is an excellent project which enables you to organize your application as a finite state machine rather than a..."
+}
+    </script>
+<meta name="generator" content="Ghost 0.7">
+<link rel="alternate" type="application/rss+xml" title="Frederik Nakstad" href="https://www.frederiknakstad.com/rss/">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-37251205-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body class="post-template nav-closed">
+<div class="site-wrapper">
+<header class="site-header main-header">
+<h1>
+<a class="blog-logo" href="http://www.frederiknakstad.com"><img src="../../../../content/images/2016/02/logo3-1.png" alt="Frederik Nakstad"></a>
+<ruby>Frederik Nakstad<rt>フレデリック・ナクスター</rt></ruby>
+</h1>
+<hr>
+<nav class="menu">
+<ul class="nav">
+<li class="nav-blog">
+<a href="http://www.frederiknakstad.com/">
+<span data-hover="Blog">Blog</span>
+</a>
+</li>
+<li class="nav-about">
+<a href="http://www.frederiknakstad.com/about">
+<span data-hover="About">About</span>
+</a>
+</li>
+</ul>
+</nav>
+</header>
+<main class="content" role="main">
+<article class="post">
+<header class="post-header">
+<h1 class="post-title">UI-Router in angular-client-side-auth</h1>
+<section class="post-meta">
+<time class="post-date" datetime="2014-02-09">09 February 2014</time>
+</section>
+</header>
+<section class="post-content">
+<p>I just merged a big change to the <a href="https://github.com/fnakstad/angular-client-side-auth">angular-client-side-auth</a> repo, switching out the default Angular routing system, <a href="http://docs.angularjs.org/api/ngRoute">ngRoute</a>, for <a href="https://github.com/angular-ui/ui-router">UI-Router</a>. UI-Router is an excellent project which enables you to organize your application as a finite state machine rather than a collection of pages (with distinct URL's). This allows you to better componentize your application by nesting states.</p>
+<p>The introduction of UI-router means that things work a little differently now, and the purpose of this post is to introduce those changes. The first of these is, unexpectedly, the routing setup. Here's an excerpt from the <a href="https://github.com/fnakstad/angular-client-side-auth/blob/master/client/js/app.js">app.js</a> file of the repo to illustrate how the routing setup works with UI-router:</p>
+<pre><code class="language-javascript">// Anonymous routes
+$stateProvider
+    .state('anon', {
+        abstract: true,
+        template: "&lt;ui-view/&gt;",
+        data: {
+            access: access.anon
+        }
+    })
+    .state('anon.login', {
+        url: '/login/',
+        templateUrl: 'login',
+        controller: 'LoginCtrl'
+    })
+    .state('anon.register', {
+        url: '/register/',
+        templateUrl: 'register',
+        controller: 'RegisterCtrl'
+    });
+
+// Regular user routes
+$stateProvider
+    .state('user', {
+        abstract: true,
+        template: "&lt;ui-view/&gt;",
+        data: {
+            access: access.user
+        }
+    })
+    .state('user.home', {
+        url: '/',
+        templateUrl: 'home'
+    })
+    .state('user.private', {
+        abstract: true,
+        url: '/private/',
+        templateUrl: 'private/layout'
+    })
+    .state('user.private.home', {
+        url: '',
+        templateUrl: 'private/home'
+    })
+    .state('user.private.nested', {
+        url: 'nested/',
+        templateUrl: 'private/nested'
+    })
+    .state('user.private.admin', {
+        url: 'admin/',
+        templateUrl: 'private/nestedAdmin',
+        data: {
+            access: access.admin
+        }
+    });
+</code></pre>
+<p>The first thing you might notice is that it's much easier to group your application states into "access areas" depending on their access levels. For example, all user states are nested views of the <code>user</code> state, while anonymous states are nested views of the <code>anon</code> state. The top-level state is simply an abstract, URL-less state which sets a common property, <code>data.access</code>, to be inherited by all nested views. </p>
+<p>As exemplified in the <code>user.private.*</code> group of states it is also possible to have nested groups below the top-level state. Here the <code>user.private</code> state inherits the <code>data.access</code> property from the <code>user</code> state, then goes on to define another abstract state which the <code>user.private.*</code> states inherit properties from. In this case the <code>user.private.*</code> states inherit the URL property (so state <code>user.private.nested</code> will have a URL of <code>/private/nested</code>) and the template set in <code>user.private</code>. The template of <code>user.private</code> acts as a layout view by implementing the <code>ui-view</code> directive, which will be used by all nested views to inject their own content:</p>
+<pre><code class="language-html">&lt;div class="container"&gt;  
+    &lt;div class="row"&gt;
+        &lt;!-- Navigation menu shared among nested views --&gt;
+        &lt;nav&gt;
+            &lt;!-- ... --&gt;
+        &lt;/nav&gt;
+
+        &lt;!-- Nested views can inject their own content here --&gt;
+        &lt;div data-ui-view="data-ui-view"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;  
+</code></pre>
+<p>Of course you can choose to organize your routing setup differently, but the important takeaway here is that nested views inherit and reuse properties from their parent views. The other thing that had to be changed was ngRoute's <code>$routeChangeStart</code> event handler. The corresponding event handler in UI-router is called <code>$stateChangeStart</code>, but behaves nearly identically:</p>
+<pre><code class="language-javascript">$rootScope.$on("$stateChangeStart", 
+    function (event, toState, toParams, 
+              fromState, fromParams) {
+    if (!Auth.authorize(toState.data.access)) {
+        $rootScope.error = "Access denied";
+        event.preventDefault();
+
+        if(fromState.url === '^') {
+            if(Auth.isLoggedIn())
+                $state.go('user.home');
+            else {
+                $rootScope.error = null;
+                $state.go('anon.login');
+            }
+        }
+    }
+});
+</code></pre>
+<p>The state change will be prevented if the <code>Auth.authorize()</code> call fails, and a redirection occurs if this is the first state the user has tried to access. That's all for now, but feel free to ask questions if something is unclear!</p>
+</section>
+<footer class="post-footer">
+<figure class="author-image">
+<a class="img" href="../../../../author/frederik/" style="background-image: url(../../../../content/images/2016/02/profile_1.jpg)"><span class="hidden">Frederik Nakstad's Picture</span></a>
+</figure>
+<section class="author">
+<h4><a href="../../../../author/frederik/">Frederik Nakstad</a></h4>
+<p>Read <a href="../../../../author/frederik/">more posts</a> by this author.</p>
+<div class="author-meta">
+<span class="author-location icon-location">Tokyo, Japan</span>
+</div>
+</section>
+<section class="share">
+<h4>Share this post</h4>
+<a class="icon-twitter" href="https://twitter.com/intent/tweet?text=UI-Router%20in%20angular-client-side-auth&amp;url=http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class="hidden">Twitter</span>
+</a>
+<a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class="hidden">Facebook</span>
+</a>
+<a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class="hidden">Google+</span>
+</a>
+</section>
+<section class="disqus_comments">
+<div id="disqus_thread"></div>
+</section>
+<script>
+            /**
+            * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+            */
+            var disqus_config = function () {
+            this.page.url = 'http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/'; // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = "16"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+
+            s.src = '//amodestproposal.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+            </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</footer>
+</article>
+</main>
+<aside class="read-next">
+<a class="read-next-story no-cover" href="../../../../2016/02/23/postgresql/">
+<section class="post">
+<h2>Resetting PostgreSQL Sequences</h2>
+<p>I recently had a problem using serial type primary keys in PostgreSQL, where my seed scripts inserting rows would&hellip;</p>
+</section>
+</a>
+<a class="read-next-story prev no-cover" href="../../../../2013/08/04/authentication-in-single-page-applications-with-angular-js-part-2/">
+<section class="post">
+<h2>Authentication in Single Page Applications with Angular.js Part 2</h2>
+<p>As you may have gathered from the title, this is a follow-up to a post I wrote a some&hellip;</p>
+</section>
+</a>
+</aside>
+<footer class="site-footer clearfix">
+<section class="copyright"><a href="http://www.frederiknakstad.com">Frederik Nakstad</a> &copy; 2021</section>
+</footer>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="../../../../assets/js/jquery.fitvids_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/prism_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/index_v%3D4d04abeaa7.js"></script>
+</body>
+</html>

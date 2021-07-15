@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Seeding mongodb through your mongoose models</title>
+<meta name="description" content>
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="../../../../favicon.ico">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/screen_v%3D4d04abeaa7.css">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/prism_v%3D4d04abeaa7.css">
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Amaranth" rel="stylesheet" type="text/css">
+<link rel="canonical" href="https://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/">
+<meta name="referrer" content="origin">
+<meta property="og:site_name" content="Frederik Nakstad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Seeding mongodb through your mongoose models">
+<meta property="og:description" content="23/4/2013 Update: A change implementing promise support for the create function was just committed to GitHub, and should be available in the 3.7 release of Mongoose. Sweet! Just wanted to share a nice little technique I discovered...">
+<meta property="og:url" content="http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/">
+<meta property="article:published_time" content="2013-04-12T18:00:00.000Z">
+<meta property="article:modified_time" content="2015-09-14T12:08:39.850Z">
+<meta property="article:tag" content="Development">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="MongoDB">
+<meta property="article:tag" content="Mongoose">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Seeding mongodb through your mongoose models">
+<meta name="twitter:description" content="23/4/2013 Update: A change implementing promise support for the create function was just committed to GitHub, and should be available in the 3.7 release of Mongoose. Sweet! Just wanted to share a nice little technique I discovered...">
+<meta name="twitter:url" content="http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/">
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "Frederik Nakstad",
+    "author": {
+        "@type": "Person",
+        "name": "Frederik Nakstad",
+        "image": "http://www.frederiknakstad.com/content/images/2016/02/profile_1.jpg",
+        "url": "http://www.frederiknakstad.com/author/frederik",
+        "sameAs": null,
+        "description": null
+    },
+    "headline": "Seeding mongodb through your mongoose models",
+    "url": "http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/",
+    "datePublished": "2013-04-12T18:00:00.000Z",
+    "dateModified": "2015-09-14T12:08:39.850Z",
+    "keywords": "Development, Node.js, MongoDB, Mongoose",
+    "description": "23/4/2013 Update: A change implementing promise support for the create function was just committed to GitHub, and should be available in the 3.7 release of Mongoose. Sweet! Just wanted to share a nice little technique I discovered..."
+}
+    </script>
+<meta name="generator" content="Ghost 0.7">
+<link rel="alternate" type="application/rss+xml" title="Frederik Nakstad" href="https://www.frederiknakstad.com/rss/">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-37251205-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body class="post-template tag-development tag-node-js tag-mongodb tag-mongoose nav-closed">
+<div class="site-wrapper">
+<header class="site-header main-header">
+<h1>
+<a class="blog-logo" href="http://www.frederiknakstad.com"><img src="../../../../content/images/2016/02/logo3-1.png" alt="Frederik Nakstad"></a>
+<ruby>Frederik Nakstad<rt>フレデリック・ナクスター</rt></ruby>
+</h1>
+<hr>
+<nav class="menu">
+<ul class="nav">
+<li class="nav-blog">
+<a href="http://www.frederiknakstad.com/">
+<span data-hover="Blog">Blog</span>
+</a>
+</li>
+<li class="nav-about">
+<a href="http://www.frederiknakstad.com/about">
+<span data-hover="About">About</span>
+</a>
+</li>
+</ul>
+</nav>
+</header>
+<main class="content" role="main">
+<article class="post tag-development tag-node-js tag-mongodb tag-mongoose">
+<header class="post-header">
+<h1 class="post-title">Seeding mongodb through your mongoose models</h1>
+<section class="post-meta">
+<time class="post-date" datetime="2013-04-12">12 April 2013</time> on <a href="../../../../tag/development/">Development</a>, <a href="../../../../tag/node-js/">Node.js</a>, <a href="../../../../tag/mongodb/">MongoDB</a>, <a href="../../../../tag/mongoose/">Mongoose</a>
+</section>
+</header>
+<section class="post-content">
+<p><strong>23/4/2013 Update:</strong>
+<em>A change implementing promise support for the</em> <code>create</code> <em>function <a href="https://github.com/LearnBoost/mongoose/commit/2ef5f237e054fc4846143530410e353ef7a7456e">was just committed to GitHub</a>, and should be available in the 3.7 release of Mongoose. Sweet!</em></p>
+<p>Just wanted to share a nice little technique I discovered when working on a project using the wonderful <a href="http://mongoosejs.com/">Mongoose</a> library to interact with a MongoDB database in Node.js. I was writing some integration tests, and needed to reset and seed the database from a set of JSON files before running each test. I really wanted to do this through my existing Mongoose models, so that I could get all the seed data validated before running my tests. Since there also are relations between my different collections I needed to insert the collections in a certain order, so my first attempt quickly devolved into a textbook example of the good ol' pyramid of doom:</p>
+<pre><code class="language-javascript">User.remove({}, function(err) {  
+    if(err) { return done(err); }
+
+    Exercise.remove({}, function(err) {
+        if(err) { return done(err); }
+
+        WorkoutTemplate.remove({}, function(err) {
+            if(err) { return done(err); }
+
+            User.create(
+                require('users.json'), 
+                function(err) {
+
+                if(err) { return done(err); }
+
+                Exercise.create(
+                    require('exercises.json'), 
+                    function(err) {
+
+                    if(err) { return done(err); }
+
+                    WorkoutTemplate.create(
+                        require('workoutTemplates.json'), 
+                        function(err) {
+
+                        if(err) { return done(err); }
+                        else    { return done(); }
+                    });
+                });
+            });
+        });
+    });
+});
+</code></pre>
+<p>In the above code snippet <code>User</code>, <code>Exercise</code>, and <code>WorkoutTemplate</code> are my mongoose models, and since my <code>WorkoutTemplate</code> schema references my <code>Exercise</code> schema I need to insert data in that specific order. Using Mongoose's <code>remove</code> function with an empty object as the first argument will clear everything from the related collection. Furthermore, the <code>create</code> function will attempt to do a batch insert of the array you hand it. However, as you can see this quickly devolved into callback hell, and that was with just three different collections! Fortunately, I discovered that the <code>exec</code> function, which you can call on query objects, returns a promise object. This means I can just make a pretty, little promise chain instead of using callbacks.</p>
+<p>There is just one obstacle to this... The <code>create</code> function does not return a query object, meaning we can't call <code>exec</code> on it to return a promise... I decided to rectify this by attaching a new function on the base mongoose Model which basically just wraps the <code>create</code> function, but actually returns a promise object.</p>
+<pre><code class="language-javascript">var mongoose = require('mongoose');  
+mongoose.Model.seed = function(entities) {  
+    var promise = new mongoose.Promise;
+    this.create(entities, function(err) {
+        if(err) { promise.reject(err); }
+        else    { promise.resolve(); }
+    });
+    return promise;
+};
+</code></pre>
+<p>So, finally I am able to create a nice and neat promise chain in the <code>beforeEach</code> function of my test suite. Voilà!</p>
+<pre><code class="language-javascript">beforeEach(function(done) {
+
+    // ...
+
+    // Reset collections
+    User.remove().exec()
+    .then(function() { 
+        return Exercise.remove().exec() 
+    })
+    .then(function() { 
+        return WorkoutTemplate.remove().exec() 
+    })
+
+    // Seed
+    .then(function() { 
+        return User.seed(
+            require('users.json'));
+    })
+    .then(function() {
+        return Exercise.seed(
+            require('exercises.json'));
+    })
+    .then(function() {     
+        return WorkoutTemplate.seed(
+            require('workoutTemplates.json')); })
+
+    // Finito!
+    .then(function() { 
+        done(); 
+    }, function(err) { 
+        return done(err); 
+    });
+
+    // ...
+
+});
+</code></pre>
+</section>
+<footer class="post-footer">
+<figure class="author-image">
+<a class="img" href="../../../../author/frederik/" style="background-image: url(../../../../content/images/2016/02/profile_1.jpg)"><span class="hidden">Frederik Nakstad's Picture</span></a>
+</figure>
+<section class="author">
+<h4><a href="../../../../author/frederik/">Frederik Nakstad</a></h4>
+<p>Read <a href="../../../../author/frederik/">more posts</a> by this author.</p>
+<div class="author-meta">
+<span class="author-location icon-location">Tokyo, Japan</span>
+</div>
+</section>
+<section class="share">
+<h4>Share this post</h4>
+<a class="icon-twitter" href="https://twitter.com/intent/tweet?text=Seeding%20mongodb%20through%20your%20mongoose%20models&amp;url=http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class="hidden">Twitter</span>
+</a>
+<a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class="hidden">Facebook</span>
+</a>
+<a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class="hidden">Google+</span>
+</a>
+</section>
+<section class="disqus_comments">
+<div id="disqus_thread"></div>
+</section>
+<script>
+            /**
+            * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+            */
+            var disqus_config = function () {
+            this.page.url = 'http://www.frederiknakstad.com/2013/04/12/seeding-mongodb-through-your-mongoose-models/'; // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = "13"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+
+            s.src = '//amodestproposal.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+            </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</footer>
+</article>
+</main>
+<aside class="read-next">
+<a class="read-next-story no-cover" href="../../../05/19/awkward-change-flow-or-how-i-learned-to-stop-worrying-and-love-the-application-cache/">
+<section class="post">
+<h2>Awkward Change Flow or: How I Learned to Stop Worrying and Love the Application Cache</h2>
+<p>Snappy title, yes...? Let's just move on... The application cache API introduced by HTML5 is a very powerful tool&hellip;</p>
+</section>
+</a>
+<a class="read-next-story prev no-cover" href="../../../01/25/psych-saturday/">
+<section class="post">
+<h2>Psych Saturday</h2>
+<p>I've always been a huge fan of psychedelic and acid rock from the 60's, so I'm really happy to&hellip;</p>
+</section>
+</a>
+</aside>
+<footer class="site-footer clearfix">
+<section class="copyright"><a href="http://www.frederiknakstad.com">Frederik Nakstad</a> &copy; 2021</section>
+</footer>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="../../../../assets/js/jquery.fitvids_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/prism_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/index_v%3D4d04abeaa7.js"></script>
+</body>
+</html>

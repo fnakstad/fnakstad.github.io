@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Authentication in Single Page Applications With Angular.js</title>
+<meta name="description" content>
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="../../../../favicon.ico">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/screen_v%3D4d04abeaa7.css">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/prism_v%3D4d04abeaa7.css">
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Amaranth" rel="stylesheet" type="text/css">
+<link rel="canonical" href="https://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/">
+<meta name="referrer" content="origin">
+<meta property="og:site_name" content="Frederik Nakstad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Authentication in Single Page Applications With Angular.js">
+<meta property="og:description" content="9/2/2014 update: The GitHub repo now uses UI-router instead of the standard ngRoute routing module. This blog post will still illustrate the original technique utilizing ngRoute, while information regarding the UI-router approach can be found in the GitHub...">
+<meta property="og:url" content="http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/">
+<meta property="article:published_time" content="2013-01-21T18:00:00.000Z">
+<meta property="article:modified_time" content="2015-09-14T12:08:03.217Z">
+<meta property="article:tag" content="Development">
+<meta property="article:tag" content="Angular.js">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Authentication in Single Page Applications With Angular.js">
+<meta name="twitter:description" content="9/2/2014 update: The GitHub repo now uses UI-router instead of the standard ngRoute routing module. This blog post will still illustrate the original technique utilizing ngRoute, while information regarding the UI-router approach can be found in the GitHub...">
+<meta name="twitter:url" content="http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/">
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "Frederik Nakstad",
+    "author": {
+        "@type": "Person",
+        "name": "Frederik Nakstad",
+        "image": "http://www.frederiknakstad.com/content/images/2016/02/profile_1.jpg",
+        "url": "http://www.frederiknakstad.com/author/frederik",
+        "sameAs": null,
+        "description": null
+    },
+    "headline": "Authentication in Single Page Applications With Angular.js",
+    "url": "http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/",
+    "datePublished": "2013-01-21T18:00:00.000Z",
+    "dateModified": "2015-09-14T12:08:03.217Z",
+    "keywords": "Development, Angular.js",
+    "description": "9/2/2014 update: The GitHub repo now uses UI-router instead of the standard ngRoute routing module. This blog post will still illustrate the original technique utilizing ngRoute, while information regarding the UI-router approach can be found in the GitHub..."
+}
+    </script>
+<meta name="generator" content="Ghost 0.7">
+<link rel="alternate" type="application/rss+xml" title="Frederik Nakstad" href="https://www.frederiknakstad.com/rss/">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-37251205-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body class="post-template tag-development tag-angular-js nav-closed">
+<div class="site-wrapper">
+<header class="site-header main-header">
+<h1>
+<a class="blog-logo" href="http://www.frederiknakstad.com"><img src="../../../../content/images/2016/02/logo3-1.png" alt="Frederik Nakstad"></a>
+<ruby>Frederik Nakstad<rt>フレデリック・ナクスター</rt></ruby>
+</h1>
+<hr>
+<nav class="menu">
+<ul class="nav">
+<li class="nav-blog">
+<a href="http://www.frederiknakstad.com/">
+<span data-hover="Blog">Blog</span>
+</a>
+</li>
+<li class="nav-about">
+<a href="http://www.frederiknakstad.com/about">
+<span data-hover="About">About</span>
+</a>
+</li>
+</ul>
+</nav>
+</header>
+<main class="content" role="main">
+<article class="post tag-development tag-angular-js">
+<header class="post-header">
+<h1 class="post-title">Authentication in Single Page Applications With Angular.js</h1>
+<section class="post-meta">
+<time class="post-date" datetime="2013-01-21">21 January 2013</time> on <a href="../../../../tag/development/">Development</a>, <a href="../../../../tag/angular-js/">Angular.js</a>
+</section>
+</header>
+<section class="post-content">
+<p><strong>9/2/2014 update:</strong>
+<em>The GitHub repo now uses <a href="https://github.com/angular-ui/ui-router">UI-router</a> instead of the standard <a href="http://docs.angularjs.org/api/ngRoute">ngRoute</a> routing module. This blog post will still illustrate the original technique utilizing ngRoute, while information regarding the UI-router approach can be found in the <a href="https://github.com/fnakstad/angular-client-side-auth">GitHub repo</a> as well as <a href="http://www.frederiknakstad.com/2014/02/09/ui-router-in-angular-client-side-auth/">this blogpost</a>. The example app in the repo has been deployed to Heroku, so now you can test it out live for yourself <a href="https://angular-client-side-auth.herokuapp.com/">right here</a>. A separate blogpost discussing the complementing server-side code <a href="http://www.frederiknakstad.com/2013/08/04/authentication-in-single-page-applications-with-angular-js-part-2/">can be found here</a>.</em></p>
+<p>I have been working a lot with Angular.js lately, and love how easy it makes it to create web applications with rich client-side functionality. It's an extremely useful asset in keeping your own client-side code lean, making it easy to separate business logic and declarative markup for anything view specific. However, it's not all roses, and I'm still struggling to find the best solutions to some problems I have encountered. One of which is a problem that exceeds the scope of Angular...</p>
+<p><strong><em>How do I deal with authentication and authorization in single page applications?</em></strong></p>
+<p>Since only the initial load of the app is a full page load, and subsequent communication with the server is entirely done via XHRs I need a slightly different model from the traditional one. One option I tried out was to have a traditional login page which, on success, redirects to a secured URL which loads the actual application. This has the added benefit that the client side code and view templates used for pages intended for logged in users are not accessible to anyone not logged in. However, in many cases this is not much of a concern as long as the communication against the resource API is properly secured. Preventing anyone from getting or modifying sensitive data is a server-side issue, and should therefore be properly handled there. I wanted a seamless user experience with no full page reloads beyond the initial page load, so I decided to play around a little and see if I could come up with an alternative. These are the core characteristics of the solution I set out to implement:</p>
+<ol>
+<li>The server needs to communicate what permissions/role the client has on inital page load. </li>
+<li>The client app then needs to keep track of the user's login status, and change it accordingly when the user logs in or out. These operations should not cause a full page reload. </li>
+<li>The access level of the routes should be declared as part of the rest of the routing configuration.</li>
+</ol>
+<h2 id="configuringaccesslevelsanduserroles">Configuring access levels and user roles</h2>
+<p>To indicate the available user roles and access levels to be used in the routing system, I decided to make a separate module which could be used both on the client and server side (with Node.js):</p>
+<pre><code class="language-javascript">(function(exports){
+
+    var userRoles = {
+        public: 1, // 001
+        user:   2, // 010
+        admin:  4  // 100
+    };
+
+    exports.userRoles = userRoles;
+    exports.accessLevels = {
+        public: userRoles.public | // 111
+                userRoles.user   | 
+                userRoles.admin,   
+        anon:   userRoles.public,  // 001
+        user:   userRoles.user |   // 110
+                userRoles.admin,                    
+        admin:  userRoles.admin    // 100
+    };
+
+})(typeof exports === 'undefined'? this['routingConfig']={}: exports);
+</code></pre>
+<p>Both the user roles and access levels are defined as numbers so that it is possible to calculate permissions using binary operations. User roles are defined by which bit is set to 1, while access levels indicate whether that user role has access by setting the corresponding bit to either 1 or 0 in the bitmask<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. So, here is an example of binary operations that can be calculated to see whether the user role <code>user</code> has access to the access levels <code>admin</code> and <code>public</code>:</p>
+<pre><code class="language-none">    010 // = userRole: user
+AND 100 // = accessLevel admin  
+=   000 // = false, no access
+
+    010 // = userRole: user
+AND 111 // = accessLevel public  
+=   010 // = true, go ahead
+</code></pre>
+<h2 id="settingupclientsiderouting">Setting up client-side routing</h2>
+<p>When I define my routes I want to indicate what access level each route should have, so I add a new property to each route, called <code>access</code>, like so:</p>
+<pre><code class="language-javascript">angular.module('myApp', ['myApp.services', 'ngCookies'])  
+.config(['$routeProvider', '$locationProvider',
+    function ($routeProvider, $locationProvider) {
+
+    // ...
+
+    var access = routingConfig.accessLevels;
+
+    $routeProvider.when('/register',
+        {
+            templateUrl:    'partials/register',
+            controller:     RegisterCtrl,
+            access:         access.anon
+        });
+    $routeProvider.when('/private',
+        {
+            templateUrl:    'partials/private',
+            controller:     PrivateCtrl,
+            access:         access.user
+        });
+    $routeProvider.when('/admin',
+        {
+            templateUrl:    'partials/admin',
+            controller:     AdminCtrl,
+            access:         access.admin
+        });
+
+    // ...
+
+}]);
+</code></pre>
+<h2 id="communicatingloginstatustoclientsideapponinitialpageload">Communicating login status to client side app on initial page load</h2>
+<p>When the user first loads the client side app, whether he's trying to access a restricted or public route initially, the server needs to communicate the current role of the user. Since the client side app can't decrypt the authentication cookie set by the server, I decided to communicate login status via the HTTP response which serves up the single page application. I decided on doing this by setting a cookie, which the client would clear upon reading it. I feel like there's something icky about doing it this way, so I'm open to any alternative solutions here. Anyway, the server sets the cookie like so:</p>
+<pre><code class="language-javascript">app.get('/*', function(req, res){  
+    var role = userRoles.public, username = '';
+    if(req.user) {
+        role = req.user.role;
+        username = req.user.username;
+    }
+
+    res.cookie('user', JSON.stringify({
+        'username': username,
+        'role': role
+    }));
+
+    res.render('index');
+});
+</code></pre>
+<p>On the client-side I have an Angular service, <code>Auth</code>, which upon initialization will read in this cookie, save the login status, then discard the cookie. This service will also make the access levels, user roles, and current user available to the rest of the application.</p>
+<pre><code class="language-javascript">angular.module('angular-client-side-auth')  
+.factory('Auth', function($http, $rootScope, $cookieStore){
+
+    var accessLevels = routingConfig.accessLevels
+        , userRoles = routingConfig.userRoles
+        , currentUser = $cookieStore.get('user') || 
+                        { username: '', role: userRoles.public };
+
+    // ...
+
+    return {
+
+        // ...
+
+        accessLevels: accessLevels,
+        userRoles: userRoles,
+        user: currentUser
+    };
+
+});
+</code></pre>
+<p>So, now my Angular app knows what login status the user has, and can perform the client side routing based on this status.</p>
+<h2 id="enforcingtheroutingpolicyclientside">Enforcing the routing policy client-side</h2>
+<p><strong>Warning: I want to stress the importance of securing your server-side API once-again. The routing policy we're "enforcing" client-side is <em>very</em> easy to get around using Chrome Developer Tools or Firebug. The technique I'm describing is used as a way of tailoring your views and giving a better user experience, but malicious users can still change their user role and get access to client-side routes that should be restricted to them. This is not a problem as long as any sensitive data is accessed via your server-side API, and the proper authentication/authorization strategy is implemented there.</strong></p>
+<p>Now that I have access to the current user's role and the access level of each route I can actually enforce the policy I've configured. So now I can add functionality like logging in, registering new users, authorizing a route, etc. to the <code>Auth</code> service I mentioned earlier.</p>
+<pre><code class="language-javascript">angular.module('angular-client-side-auth')  
+.factory('Auth', function($http, $rootScope, $cookieStore){
+
+    // ...
+
+    $rootScope.accessLevels = accessLevels;
+    $rootScope.userRoles = userRoles;
+
+    return {
+        authorize: function(accessLevel, role) {
+            if(role === undefined)
+                role = $rootScope.user.role;
+            return accessLevel &amp;amp; role;
+        },
+
+        isLoggedIn: function(user) {
+            if(user === undefined)
+                user = $rootScope.user;
+            return user.role === userRoles.user || user.role === userRoles.admin;
+        },
+
+        register: function(user, success, error) {
+            $http.post('/register', user).success(success).error(error);
+        },
+
+        login: function(user, success, error) {
+            $http.post('/login', user).success(function(user){
+                $rootScope.user = user;
+                success(user);
+            }).error(error);
+        },
+
+        logout: function(success, error) {
+            $http.post('/logout').success(function(){
+                $rootScope.user = {
+                    username = '',
+                    role = userRoles.public
+                };
+                success();
+            }).error(error);
+        },
+
+        accessLevels: accessLevels,
+        userRoles: userRoles
+    };
+});
+</code></pre>
+<p>This service can easily be reused by injecting it into any other component of my Angular application. For example, to actually enforce my routing policy I need to utilize the <code>authorize()</code> and <code>isLoggedIn()</code> functions in an event handler on <code>$routeChangeStart</code>:</p>
+<pre><code class="language-javascript">angular.module('angular-client-side-auth', ['ngCookies'])  
+.run(['$rootScope', '$location', 'Auth', function ($rootScope, $location, Auth) {
+
+    $rootScope.$on("$routeChangeStart", function (event, next, current) {
+        if (!Auth.authorize(next.access)) {
+            if(Auth.isLoggedIn()) $location.path('/');
+            else                  $location.path('/login');
+        }
+    });
+
+}]);
+</code></pre>
+<p>Now, whenever a route is accessed, the proper authorization check will be performed before serving up the view, and a redirect will happen in case the user has insufficient permissions.</p>
+<p>One gotcha here is that the session could time out making the client believe the user is logged in when in fact he is declined when communicating with the server resource API. However this can be rectified by using an HTTP interceptor to detect API calls that were denied. Mine is pretty simple, and just redirects to the login page in case of a 401.</p>
+<pre><code class="language-javascript">angular.module('angularAuth', ['ngCookies'])  
+.config([
+    '$routeProvider', 
+    '$locationProvider', 
+    '$httpProvider', 
+    function ($routeProvider, $locationProvider, $httpProvider) {
+
+    // ...
+
+    var interceptor = ['$location', '$q', function($location, $q) {
+        function success(response) {
+            return response;
+        }
+
+        function error(response) {
+
+            if(response.status === 401) {
+                $location.path('/login');
+                return $q.reject(response);
+            }
+            else {
+                return $q.reject(response);
+            }
+        }
+
+        return function(promise) {
+            return promise.then(success, error);
+        }
+    }];
+
+    $httpProvider.responseInterceptors.push(interceptor);
+});
+</code></pre>
+<h2 id="customizingviewsbasedonuserrole">Customizing views based on user role</h2>
+<p>I also want to introduce a directive I've made which you can use to show/hide elements based on the current user's role. Here's what it looks like:</p>
+<pre><code class="language-javascript">angular.module('angular-client-side-auth')  
+.directive('accessLevel', ['$rootScope', 'Auth', function($rootScope, Auth) {
+    return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+            var prevDisp = element.css('display');
+            $rootScope.$watch('user.role', function(role) {
+                if(!Auth.authorize(attrs.accessLevel))
+                    element.css('display', 'none');
+                else
+                    element.css('display', prevDisp);
+            });
+        }
+    };
+}]);
+</code></pre>
+<p>So, whenever you decorate a tag with the <code>access-level</code> directive, it will check the role of the current user, perform an authorization check using the injected <code>Auth</code>, and then show/hide the element. It also remembers the previous <code>display</code> property of the element in case the user logs out, thus changing her role.</p>
+<p>I really want to stress again the point that this scheme exposes all the routing logic and view templates to the client, and can easily be manipulated by the end user. So, you still have to make sure that the calls to the server are properly authenticated and authorized there.</p>
+<p>I have made a complete example with all the code available in <em><a href="https://github.com/fnakstad/angular-client-side-auth">this GitHub repository</a></em>, which might illustrate my approach better than I have been able to in this blogpost.</p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>The routingConfig module in the <a href="https://github.com/fnakstad/angular-client-side-auth">GitHub repo</a> will now automatically generate the required bit masks for you!<a href="#fnref:1" rev="footnote">↩</a></p></li>
+</ol>
+</div>
+</section>
+<footer class="post-footer">
+<figure class="author-image">
+<a class="img" href="../../../../author/frederik/" style="background-image: url(../../../../content/images/2016/02/profile_1.jpg)"><span class="hidden">Frederik Nakstad's Picture</span></a>
+</figure>
+<section class="author">
+<h4><a href="../../../../author/frederik/">Frederik Nakstad</a></h4>
+<p>Read <a href="../../../../author/frederik/">more posts</a> by this author.</p>
+<div class="author-meta">
+<span class="author-location icon-location">Tokyo, Japan</span>
+</div>
+</section>
+<section class="share">
+<h4>Share this post</h4>
+<a class="icon-twitter" href="https://twitter.com/intent/tweet?text=Authentication%20in%20Single%20Page%20Applications%20With%20Angular.js&amp;url=http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class="hidden">Twitter</span>
+</a>
+<a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class="hidden">Facebook</span>
+</a>
+<a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class="hidden">Google+</span>
+</a>
+</section>
+<section class="disqus_comments">
+<div id="disqus_thread"></div>
+</section>
+<script>
+            /**
+            * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+            */
+            var disqus_config = function () {
+            this.page.url = 'http://www.frederiknakstad.com/2013/01/21/authentication-in-single-page-applications-with-angular-js/'; // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = "7"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+
+            s.src = '//amodestproposal.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+            </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</footer>
+</article>
+</main>
+<aside class="read-next">
+<a class="read-next-story no-cover" href="../../25/psych-saturday/">
+<section class="post">
+<h2>Psych Saturday</h2>
+<p>I've always been a huge fan of psychedelic and acid rock from the 60's, so I'm really happy to&hellip;</p>
+</section>
+</a>
+<a class="read-next-story prev no-cover" href="../../../../2012/12/22/the-solar-system/">
+<section class="post">
+<h2>The Solar System</h2>
+<p>While reading a Japanese text today, I ran into a sentence mentioning the planet Venus. In Japanese Venus is&hellip;</p>
+</section>
+</a>
+</aside>
+<footer class="site-footer clearfix">
+<section class="copyright"><a href="http://www.frederiknakstad.com">Frederik Nakstad</a> &copy; 2021</section>
+</footer>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="../../../../assets/js/jquery.fitvids_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/prism_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/index_v%3D4d04abeaa7.js"></script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Weak Singleton in Swift</title>
+<meta name="description" content>
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="../../../../favicon.ico">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/screen_v%3D4d04abeaa7.css">
+<link rel="stylesheet" type="text/css" href="../../../../assets/css/prism_v%3D4d04abeaa7.css">
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Amaranth" rel="stylesheet" type="text/css">
+<link rel="canonical" href="https://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/">
+<meta name="referrer" content="origin">
+<meta property="og:site_name" content="Frederik Nakstad">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Weak Singleton in Swift">
+<meta property="og:description" content="Countless articles have been written arguing whether the Singleton pattern is an anti-pattern or not. I&#x27;m not going to get into that argument, though I do think there are valid use-cases for it from a pragmatic point of view. I...">
+<meta property="og:url" content="http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/">
+<meta property="article:published_time" content="2016-04-18T04:35:56.227Z">
+<meta property="article:modified_time" content="2016-05-06T03:30:15.820Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Weak Singleton in Swift">
+<meta name="twitter:description" content="Countless articles have been written arguing whether the Singleton pattern is an anti-pattern or not. I&#x27;m not going to get into that argument, though I do think there are valid use-cases for it from a pragmatic point of view. I...">
+<meta name="twitter:url" content="http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/">
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "Frederik Nakstad",
+    "author": {
+        "@type": "Person",
+        "name": "Frederik Nakstad",
+        "image": "http://www.frederiknakstad.com/content/images/2016/02/profile_1.jpg",
+        "url": "http://www.frederiknakstad.com/author/frederik",
+        "sameAs": null,
+        "description": null
+    },
+    "headline": "Weak Singleton in Swift",
+    "url": "http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/",
+    "datePublished": "2016-04-18T04:35:56.227Z",
+    "dateModified": "2016-05-06T03:30:15.820Z",
+    "description": "Countless articles have been written arguing whether the Singleton pattern is an anti-pattern or not. I&#x27;m not going to get into that argument, though I do think there are valid use-cases for it from a pragmatic point of view. I..."
+}
+    </script>
+<meta name="generator" content="Ghost 0.7">
+<link rel="alternate" type="application/rss+xml" title="Frederik Nakstad" href="https://www.frederiknakstad.com/rss/">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-37251205-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body class="post-template nav-closed">
+<div class="site-wrapper">
+<header class="site-header main-header">
+<h1>
+<a class="blog-logo" href="http://www.frederiknakstad.com"><img src="../../../../content/images/2016/02/logo3-1.png" alt="Frederik Nakstad"></a>
+<ruby>Frederik Nakstad<rt>フレデリック・ナクスター</rt></ruby>
+</h1>
+<hr>
+<nav class="menu">
+<ul class="nav">
+<li class="nav-blog">
+<a href="http://www.frederiknakstad.com/">
+<span data-hover="Blog">Blog</span>
+</a>
+</li>
+<li class="nav-about">
+<a href="http://www.frederiknakstad.com/about">
+<span data-hover="About">About</span>
+</a>
+</li>
+</ul>
+</nav>
+</header>
+<main class="content" role="main">
+<article class="post">
+<header class="post-header">
+<h1 class="post-title">Weak Singleton in Swift</h1>
+<section class="post-meta">
+<time class="post-date" datetime="2016-04-18">18 April 2016</time>
+</section>
+</header>
+<section class="post-content">
+<p>Countless articles have been written arguing whether the Singleton pattern is an anti-pattern or not. I'm not going to get into that argument, though I do think there are valid use-cases for it from a pragmatic point of view. I recently wanted to implement such a singleton in Swift, but with the twist that if it isn't referenced from anywhere it will be released from memory; a so-called weak singleton. Fire it up in a playground, and see how it works :)</p>
+<pre><code class="language-swift">// The type being stored in the singleton
+class Resource {  
+  let name: String
+
+  init () {
+    print("init")     // Called once
+    name = "I'm a resource"
+  }
+
+  deinit {
+    print("deinit")   // Called once
+  }
+}
+
+// The class serving up the singleton
+class SharedResource {  
+  static weak var weakInstance: Resource?
+
+  static var sharedInstance: Resource {
+    get {
+      if let instance = weakInstance {
+        return instance
+      } else {
+        let newInstance = Resource()
+        weakInstance = newInstance
+        return newInstance
+      }
+    }
+  }
+}
+
+// Reference the singleton from 3 different variables
+// Note that init() will be called just one time
+var str: Resource? = SharedResource.sharedInstance  
+var str2: Resource? = SharedResource.sharedInstance  
+var str3: Resource? = SharedResource.sharedInstance
+
+// Dereference the singleton
+// After the last variable dereferences it, deinit will be called
+str = nil  
+str2 = nil  
+str3 = nil  
+</code></pre>
+</section>
+<footer class="post-footer">
+<figure class="author-image">
+<a class="img" href="../../../../author/frederik/" style="background-image: url(../../../../content/images/2016/02/profile_1.jpg)"><span class="hidden">Frederik Nakstad's Picture</span></a>
+</figure>
+<section class="author">
+<h4><a href="../../../../author/frederik/">Frederik Nakstad</a></h4>
+<p>Read <a href="../../../../author/frederik/">more posts</a> by this author.</p>
+<div class="author-meta">
+<span class="author-location icon-location">Tokyo, Japan</span>
+</div>
+</section>
+<section class="share">
+<h4>Share this post</h4>
+<a class="icon-twitter" href="https://twitter.com/intent/tweet?text=Weak%20Singleton%20in%20Swift&amp;url=http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+<span class="hidden">Twitter</span>
+</a>
+<a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+<span class="hidden">Facebook</span>
+</a>
+<a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+<span class="hidden">Google+</span>
+</a>
+</section>
+<section class="disqus_comments">
+<div id="disqus_thread"></div>
+</section>
+<script>
+            /**
+            * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+            */
+            var disqus_config = function () {
+            this.page.url = 'http://www.frederiknakstad.com/2016/04/18/weak-singleton-in-swift/'; // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = "22"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+
+            s.src = '//amodestproposal.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+            </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</footer>
+</article>
+</main>
+<aside class="read-next">
+<a class="read-next-story no-cover" href="../../../06/15/adding-multiple-actions-to-uialertcontroller/">
+<section class="post">
+<h2>Adding multiple actions to UIAlertController</h2>
+<p>When making an iOS app you will find that there are many situations in which you want to show&hellip;</p>
+</section>
+</a>
+<a class="read-next-story prev no-cover" href="../../../02/23/postgresql/">
+<section class="post">
+<h2>Resetting PostgreSQL Sequences</h2>
+<p>I recently had a problem using serial type primary keys in PostgreSQL, where my seed scripts inserting rows would&hellip;</p>
+</section>
+</a>
+</aside>
+<footer class="site-footer clearfix">
+<section class="copyright"><a href="http://www.frederiknakstad.com">Frederik Nakstad</a> &copy; 2021</section>
+</footer>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="../../../../assets/js/jquery.fitvids_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/prism_v%3D4d04abeaa7.js"></script>
+<script type="text/javascript" src="../../../../assets/js/index_v%3D4d04abeaa7.js"></script>
+</body>
+</html>
